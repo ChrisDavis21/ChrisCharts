@@ -113,44 +113,45 @@
 							<h2>Recipe Keyword Similarity</h2>
 							<p>
 							I want to look beyond ingredient and find trends in overall food categories. To do this, I will analyze titles for network clustering. Unfortunately, most of the recipe have titles like "get the sensation brownies" or "healthy for them yogurt popsicles". With unique names like these, 
-							it would be hard to find any trends. Therefore some pre-processing was required to distill these titles into keywords like brownies and popsicles. The easiest way to do this for 232,000 recipes was to feed them through a LLM and ask for a keyword output. Therefore, you might notice a couple odd 
+							it would be hard to find any trends. Therefore some pre-processing was required to distill these titles into keywords like brownies and popsicles. The easiest way to do this for 232,000 recipes was to filter to final word output. Therefore, you might notice a couple odd 
 							categories and names, but as a whole this method is way faster and easier than manually reading every title. After all, it would take almost 200 hours of continuous effort if I could read and parse 20 titles per minute which is highly unlikely. 				
 							</p>
 							<p>
-							Recipe keywords were tallied (only one per recipe), and edges were constructed based on a similarity metric comparing the top ten most frequent ingredients in each recipe type. For instance bread and cake have more similar top 10 most common ingredients than cake and burgers. Edge weight is set accordingly. Node size is based on the count of recipes with said keyword.
+							Recipe keywords were tallied (only one per recipe), and edges were constructed based on a similarity metric comparing the top eight most frequent ingredients in each recipe type. For instance bread and cake have more similar top 8 most common ingredients than cake and burgers. Edge weight is set accordingly. Node size is based on the count of recipes with said keyword.
 							For this network, I instead used the <a href="https://onlinelibrary.wiley.com/doi/10.1002/spe.4380211102">Fruchterman Reingold</a> algorithm to minimize the energy of the model. In this model, the repulsion force is analogous to Coulomb's law, and the attractive force uses edge weight as a spring constant. Again, there is an overall system gravity which holds the network together.
 							</p>
 							
 							<span class="image main"><img src="images/recipe_statistics_3.svg" alt="" /></span>
 							<p>
-							The modularity classes and proximal recipes in this network are less intuitive than the ingredient network. I suspect some of that might be due to high similarity in key ingredients with many recipes. For instance, beans and burgers are next to each other in the figure. 
-							I would assume beans are the principal ingredient of beans, and ground beef is for burgers. However, instead, their top ten ingredients are:
-							<li> [salt, onion, butter, olive oil, garlic cloves, water, sugar, pepper, garlic, eggs] </li>
-							<li> [salt, onion, butter, olive oil, sugar, water, garlic cloves, pepper, garlic, eggs] </li>
+							The modularity classes and proximal recipes in this network are similar to the ingredient network, but there is maybe a bit more overlap. I suspect some of that might be due to high similarity in key ingredients with many recipes. For instance, soup and sauce are next to each other in the figure. 
+							I would assume broth is the principal ingredient of soup, and oil is for sauce. However, instead, their top eight ingredients are:
+							<li> [onion, salt, water, chicken broth, garlic cloves, butter, celery, olive oil] </li>
+							<li> [salt, butter, olive oil, garlic cloves, onion, water, sugar, garlic] </li>
 							<br>
-							These are the exact same lists only in slightly different orders. Can you tell which is beans and which is burgers? The 2nd one with sugar as a higher priority is beans. I think one of the complications is that the common ingredients are prone to show up in all ingredients, but the principal ingredient like the beans or the burger meat that defines the food can actually be substituted for a number of options. For instance, a burger could be a 
-							vegan burger or chicken burger or bison burger, and beans might be baked beans or pinto beans or refried beans. In this case, the salt and onion and oil and garlic are more persistent across recipes than the defining substance itself. If I were to revisit this, I would want to develop a new method for comparing keyword similarity besides most common ingredients. 
+							These are the very similar lists with 6/8 matching elements. I think one of the complications with this similarity metric is therefore that the common ingredients are prone to show up in all recipes, but the principal ingredient like the meat type or the base that defines the food is only one item. At times, the this principal ingredient can actually be substituted for a number of options. For instance, a burger could be a 
+							vegan burger or chicken burger or bison burger. In this case, the salt and butter and garlic are more persistent across recipes than the defining substance itself. If I were to revisit this, I would want to develop a new method for comparing keyword similarity besides most common ingredients. 
 							</p>
 							<p>
-							Despite this limitation, some trends are still clearly observable. The segregation of baked goods from traditional dinner meals is quite apparent, likely due to flour, sugar, butter, egg versus salt, oil, garlic, etc. Small cluster communities like jambalaya and goulash or italian pockets of risotto, fettuccine, and carbonara are observable at closer inspection. I am unable to come up with a summary 
-							descriptor for the 10 algorithmically determined communities in the network. If you think you are able, give it a shot. 
-							<br>
+							Despite this limitation, some trends are still clearly observable. The segregation of baked goods (green) from traditional dinner meals (blue & pink) is quite apparent, likely due to flour, sugar, butter, egg versus salt, oil, garlic, etc. Small cluster communities like seasonings (bottom right, lavender) or slaw and cole slaw (teal) are observable at closer inspection. The four principal groups appear to be: 
+							Beverages/Dressings, Baking, and two categories of Mains, Dinners, Sides, Etc. Please let me know if you can find a clear separation between these two groups. It is possible the answer is hiding in the ingredient mapping.
+							</p>
+							<p>
 							Another interesting revelation from this network is based on the node sizes which again are based on the tally of recipes attributed to that keyword. Large node sizes indicate a large amount of shared recipes. We have an abundance of recipes for soups, salads, casseroles, sauces, and chicken, and bakers have created many variations of muffins, cookies, pie, bread, and cake.
 							Overall, there are nearly 9000 recipes for salads. Again, the keyword issue comes to mind because a chicken salad is a completely distinct entity from a beet, goat cheese, and arugula salad, yet they are included in the same category. Better language model keyword identification might be able to distinguish these. Alternatively, a language model could be trained off of the ingredient list (with or without the steps) 
 							to determine the proper keyword instead of using the title alone. Unfortunately, this method would be partially flawed because a network model based on trained similarity of ingredient lists would report high modularity when measuring this same ingredient similarity. In simpler terms, it would be like using the training data set as the experimental set where the training is the LLM and the experiment is the network.
 							</p>
 							<p>
 							After extracting the modularity classes for each of these keywords, we can now plot them against other metrics. Interesting to me is recipe complexity or burden. A burdensome recipe takes a long time to prepare and has many steps. Fortunately, both of these pieces of information are saved in the dataset. The scatterplot 
-							below shows all 783 nodes or keywords with the average minutes to prepare on the x-axis and the average steps to prepare on the y-axis. Recipe keywords in the top right are more complex and burdensome than those in the bottom left. Size and color are the same as the network above, but no ellipses were drawn on this figure as there were 10 communities as well as many stragglers identified through modularity.
+							below shows all 783 nodes or keywords with the average minutes to prepare on the x-axis and the average steps to prepare on the y-axis. Recipe keywords in the top right are more complex and burdensome than those in the bottom left. Size and color are the same as the network above, but ellipses are now shaped differently due to the logarithmic x-axis.
 							</p>
 							<span class="image main"><img src="images/recipe_statistics_4.svg" alt="" /></span>
 							<p>
-							The keyword "complexity" scatterplot forms a relatively triangular shape with a centroid near 9.5 steps and 60 minutes of prep and cook time. This feels pretty standard for recipes that I make as well. My eyes are first drawn to the far right to "pot roast" which averages nearly 3 hours of cook time. Other time-intensive recipes are all pretty intuitive: 
-							barbecue, brisket, cassoulet, shanks, ribs, pot & roast, stew, sauerkraut, and pork. The surprising recipe with a long cook time is the toddy. Most toddy recipes online have less than 1 hour prep times; however, three toddy recipes from this dataset have around 24 hour prep times - likely due to overnight resting or seeping.
+							The keyword "complexity" scatterplot forms a relatively linear shape with a centroid near 9 steps and 50 minutes of prep and cook time. This feels pretty standard for recipes that I make as well. My eyes are first drawn to the far right where meals like pot roasts can average more than 4 hours of prep and cook time. Other time-intensive recipes are all pretty intuitive: 
+							pork, turkey, pickles, jerky, carnitas, ribs, and barbecue. The surprising recipe with a long cook time is the starter. Most "starter" recipes online have less than 1 hour prep times; however, a few recipes from this dataset have over 3-day cook and prep times! Upon closer inspection these are all sourdough starter recipes which involve multi-day resting.
 							<br>
-							High instruction step-count recipes are mascarpone, toffee, lasagna, paprikash, tamales, puddings, and pollo. Pollo is relatively unique considering chicken only averages 9.4 steps, nearly 4 fewer? Of these, I am most surprised about mascarpone although that is a fairly broad category of recipes.
+							High instruction step-count recipes are baklava, challah, tamales, moussaka, empanadas, and biryani. Generally the trend seems to emphasize complicated ethnic dishes. 
 							<br>
-							Most of the low complexity (few steps & short time) keywords pertain to beverages. One that stands out is "kids". While an unexpected keyword to find, it makes sense that food prep for children needs to be quick and easy. 
+							Most of the low complexity (few steps & short time) keywords pertain to beverages. One that stands out is "mores". While an unexpected keyword to find, it derives from a data aberration in removing punctuation from "s'mores". 
 							</p>
 							
 							
